@@ -1,3 +1,16 @@
+## v0.6.4
+
+- Significant enhancements to the `battery` segment. Check out the README to
+  read more!
+
+## v0.6.3
+
+- Fixed susceptibility to [pw3nage exploit](https://github.com/njhartwell/pw3nage).
+- Added support for Android
+- The abbreviation for $HOME is now configurable (doesn't have to be `~`).
+- Fixed colorization of VCS segment in Subversion repos.
+- Improved handling of symlinks in installation paths.
+
 ## v0.6.2
 
 - Fixed some issues with the new `nerdfont-fontconfig` option.

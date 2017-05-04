@@ -44,7 +44,7 @@ fi
 # Resolve the installation path
 if [[ -L "$POWERLEVEL9K_INSTALLATION_PATH" ]]; then
   # If this theme is sourced as a symlink, we need to locate the real URL
-  filename="$(realpath -P $POWERLEVEL9K_INSTALLATION_PATH 2>/dev/null || readlink -f $POWERLEVEL9K_INSTALLATION_PATH 2>/dev/null || perl -MCwd=abs_path -le 'print abs_path readlink(shift);' $POWERLEVEL9K_INSTALLATION_PATH 2>/dev/null)"
+  filename="${POWERLEVEL9K_INSTALLATION_PATH:A}"
 elif [[ -d "$POWERLEVEL9K_INSTALLATION_PATH" ]]; then
   # Directory
   filename="${POWERLEVEL9K_INSTALLATION_PATH}/powerlevel9k.zsh-theme"
@@ -425,11 +425,16 @@ prompt_battery() {
     esac
   fi
 
-  if [[ $OS =~ Linux ]]; then
+  if [[ "$OS" == 'Linux' ]] || [[ "$OS" == 'Android' ]]; then
     local sysp="/sys/class/power_supply"
+
     # Reported BAT0 or BAT1 depending on kernel version
     [[ -a $sysp/BAT0 ]] && local bat=$sysp/BAT0
     [[ -a $sysp/BAT1 ]] && local bat=$sysp/BAT1
+
+    # Android-related
+    # Tested on: Moto G falcon (CM 13.0)
+    [[ -a $sysp/battery ]] && local bat=$sysp/battery
 
     # Return if no battery found
     [[ -z $bat ]] && return
@@ -463,9 +468,24 @@ prompt_battery() {
     message="$bat_percent%%"
   fi
 
-  # Draw the prompt_segment
-  if [[ -n $bat_percent ]]; then
-    "$1_prompt_segment" "${0}_${current_state}" "$2" "$DEFAULT_COLOR" "${battery_states[$current_state]}" "$message" 'BATTERY_ICON'
+  # override default icon if we are using battery stages
+  if [[ -n "$POWERLEVEL9K_BATTERY_STAGES" ]]; then
+    local segment=$(( 100.0 / (${#POWERLEVEL9K_BATTERY_STAGES} - 1 ) ))
+    if [[ $segment > 1 ]]; then
+      local offset=$(( ($bat_percent / $segment) + 1 ))
+      # check if the stages are in an array or a string
+      [[ "${(t)POWERLEVEL9K_BATTERY_STAGES}" =~ "array" ]] && POWERLEVEL9K_BATTERY_ICON="$POWERLEVEL9K_BATTERY_STAGES[$offset]" || POWERLEVEL9K_BATTERY_ICON=${POWERLEVEL9K_BATTERY_STAGES:$offset:1}
+    fi
+  fi
+
+  # override the default color if we are using a color level array
+  if [[ -n "$POWERLEVEL9K_BATTERY_LEVEL_BACKGROUND" ]] && [[ "${(t)POWERLEVEL9K_BATTERY_LEVEL_BACKGROUND}" =~ "array" ]]; then
+    local segment=$(( 100.0 / (${#POWERLEVEL9K_BATTERY_LEVEL_BACKGROUND} - 1 ) ))
+    local offset=$(( ($bat_percent / $segment) + 1 ))
+    "$1_prompt_segment" "$0_${current_state}" "$2" "${POWERLEVEL9K_BATTERY_LEVEL_BACKGROUND[$offset]}" "${battery_states[$current_state]}" "${message}" "BATTERY_ICON"
+  else
+    # Draw the prompt_segment
+    "$1_prompt_segment" "$0_${current_state}" "$2" "${DEFAULT_COLOR}" "${battery_states[$current_state]}" "${message}" "BATTERY_ICON"
   fi
 }
 
@@ -613,6 +633,7 @@ prompt_command_execution_time() {
 
 # Dir: current working directory
 set_default POWERLEVEL9K_DIR_PATH_SEPARATOR "/"
+set_default POWERLEVEL9K_HOME_FOLDER_ABBREVIATION "~"
 prompt_dir() {
   local current_path="$(print -P "%~")"
   if [[ -n "$POWERLEVEL9K_SHORTEN_DIR_LENGTH" || "$POWERLEVEL9K_SHORTEN_STRATEGY" == "truncate_with_folder_marker" ]]; then
@@ -664,7 +685,7 @@ prompt_dir() {
             break;
           fi
         done
-        
+
         local packageName=$(jq '.name' ${pkgFile} 2> /dev/null \
           || node -e 'console.log(require(process.argv[1]).name);' ${pkgFile} 2>/dev/null \
           || cat "${pkgFile}" 2> /dev/null | grep -m 1 "\"name\"" | awk -F ':' '{print $2}' | awk -F '"' '{print $2}' 2>/dev/null \
@@ -717,6 +738,10 @@ prompt_dir() {
     current_path="$( echo "${current_path}" | sed "s/\//${POWERLEVEL9K_DIR_PATH_SEPARATOR}/g")"
   fi
 
+  if [[ "${POWERLEVEL9K_HOME_FOLDER_ABBREVIATION}" != "~" ]]; then
+    current_path="$( echo "${current_path}" | sed "s/^~/${POWERLEVEL9K_HOME_FOLDER_ABBREVIATION}/")"
+  fi
+
   typeset -AH dir_states
   dir_states=(
     "DEFAULT"         "FOLDER_ICON"
@@ -758,20 +783,19 @@ prompt_history() {
 
 # Detection for virtualization (systemd based systems only)
 prompt_detect_virt() {
-  if ! command -v systemd-detect-virt;then
+  if ! command -v systemd-detect-virt > /dev/null; then
     return
   fi
   local virt=$(systemd-detect-virt)
-  local color="yellow"
   if [[ "$virt" == "none" ]]; then
     if [[ "$(ls -di / | grep -o 2)" != "2" ]]; then
       virt="chroot"
-      "$1_prompt_segment" "$0" "$2" "$color" "$DEFAULT_COLOR" "$virt"
+      "$1_prompt_segment" "$0" "$2" "yellow" "$DEFAULT_COLOR" "$virt"
     else
       ;
     fi
   else
-    "$1_prompt_segment" "$0" "$2" "$color" "$DEFAULT_COLOR" "$virt"
+    "$1_prompt_segment" "$0" "$2" "yellow" "$DEFAULT_COLOR" "$virt"
   fi
 }
 
@@ -1003,7 +1027,7 @@ prompt_status() {
       "$1_prompt_segment" "$0_ERROR" "$2" "$DEFAULT_COLOR" "red" "" 'FAIL_ICON'
     fi
   elif [[ "$POWERLEVEL9K_STATUS_VERBOSE" == true || "$POWERLEVEL9K_STATUS_OK_IN_NON_VERBOSE" == true ]]; then
-    "$1_prompt_segment" "$0_OK" "$2" "$DEFAULT_COLOR" "046" "" 'OK_ICON'
+    "$1_prompt_segment" "$0_OK" "$2" "$DEFAULT_COLOR" "green" "" 'OK_ICON'
   fi
 }
 
@@ -1139,6 +1163,12 @@ powerlevel9k_vcs_init() {
   zstyle ':vcs_info:hg*:*' get-revision true
   zstyle ':vcs_info:hg*:*' get-bookmarks true
   zstyle ':vcs_info:hg*+gen-hg-bookmark-string:*' hooks hg-bookmarks
+
+  # For svn, only
+  # TODO fix the %b (branch) format for svn. Using %b breaks
+  # color-encoding of the foreground for the rest of the powerline.
+  zstyle ':vcs_info:svn*:*' formats "$VCS_CHANGESET_PREFIX%c%u"
+  zstyle ':vcs_info:svn*:*' actionformats "$VCS_CHANGESET_PREFIX%c%u %F{${POWERLEVEL9K_VCS_ACTIONFORMAT_FOREGROUND}}| %a%f"
 
   if [[ "$POWERLEVEL9K_SHOW_CHANGESET" == true ]]; then
     zstyle ':vcs_info:*' get-revision true
@@ -1278,12 +1308,13 @@ powerlevel9k_prepare_prompts() {
   RETVAL=$?
 
   _P9K_COMMAND_DURATION=$((EPOCHREALTIME - _P9K_TIMER_START))
+
   # Reset start time
-  _P9K_TIMER_START=99999999999
+  _P9K_TIMER_START=0xFFFFFFFF
 
   if [[ "$POWERLEVEL9K_PROMPT_ON_NEWLINE" == true ]]; then
-    PROMPT="$(print_icon 'MULTILINE_FIRST_PROMPT_PREFIX')%f%b%k$(build_left_prompt)
-$(print_icon 'MULTILINE_SECOND_PROMPT_PREFIX')"
+    PROMPT='$(print_icon 'MULTILINE_FIRST_PROMPT_PREFIX')%f%b%k$(build_left_prompt)
+$(print_icon 'MULTILINE_SECOND_PROMPT_PREFIX')'
     if [[ "$POWERLEVEL9K_RPROMPT_ON_NEWLINE" != true ]]; then
       # The right prompt should be on the same line as the first line of the left
       # prompt. To do so, there is just a quite ugly workaround: Before zsh draws
@@ -1298,13 +1329,13 @@ $(print_icon 'MULTILINE_SECOND_PROMPT_PREFIX')"
       RPROMPT_SUFFIX=''
     fi
   else
-    PROMPT="%f%b%k$(build_left_prompt)"
+    PROMPT='%f%b%k$(build_left_prompt)'
     RPROMPT_PREFIX=''
     RPROMPT_SUFFIX=''
   fi
 
   if [[ "$POWERLEVEL9K_DISABLE_RPROMPT" != true ]]; then
-    RPROMPT="$RPROMPT_PREFIX%f%b%k$(build_right_prompt)%{$reset_color%}$RPROMPT_SUFFIX"
+    RPROMPT='$RPROMPT_PREFIX%f%b%k$(build_right_prompt)%{$reset_color%}$RPROMPT_SUFFIX'
   fi
 NEWLINE='
 '
@@ -1312,8 +1343,22 @@ NEWLINE='
 }
 
 prompt_powerlevel9k_setup() {
+  # I decided to use the value below for better supporting 32-bit CPUs, since the previous value "99999999999" was causing issues on my Android phone, which is powered by an armv7l
+  # We don't have to change that until 19 January of 2038! :)
+
   # Disable false display of command execution time
-  _P9K_TIMER_START=99999999999
+  # Maximum integer on 32-bit CPUs
+  _P9K_TIMER_START=2147483647
+
+  # The prompt function will set these prompt_* options after the setup function
+  # returns. We need prompt_subst so we can safely run commands in the prompt
+  # without them being double expanded and we need prompt_percent to expand the
+  # common percent escape sequences.
+  prompt_opts=(subst percent cr)
+
+  # Borrowed from promptinit, sets the prompt options in case the theme was
+  # not initialized via promptinit.
+  setopt noprompt{bang,cr,percent,subst} "prompt${^prompt_opts[@]}"
 
   # Display a warning if the terminal does not support 256 colors
   local term_colors
@@ -1345,12 +1390,6 @@ prompt_powerlevel9k_setup() {
     'longstatus'      'status'
   )
   print_deprecation_warning deprecated_segments
-
-  setopt prompt_subst
-
-  setopt LOCAL_OPTIONS
-  unsetopt XTRACE KSH_ARRAYS
-  setopt PROMPT_CR PROMPT_PERCENT PROMPT_SUBST MULTIBYTE
 
   # initialize colors
   autoload -U colors && colors

@@ -184,9 +184,8 @@ your `~/.zshrc`:
 
 ##### battery
 
-This segment will display your current battery status (fails gracefully on
-systems without a battery). It is supported on both OSX and Linux (note that it
-requires `acpi` on Linux).
+The default settings for this segment will display your current battery status (fails gracefully on
+systems without a battery). It is supported on both OSX and Linux (note that it requires `acpi` on Linux).
 
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
@@ -200,6 +199,56 @@ requires `acpi` on Linux).
 Note that you can [modify the `_FOREGROUND`
 color](https://github.com/bhilburn/powerlevel9k/wiki/Stylizing-Your-Prompt#segment-color-customization)
 without affecting the icon color.
+
+You can also change the battery icon automatically depending on the battery
+level. This will override the default battery icon. In order to do this, you
+need to define the `POWERLEVEL9k_BATTERY_STAGES` variable.
+
+| Variable | Default Value | Description |
+| `POWERLEVEL9K_BATTERY_STAGES`|Unset|A string or array, which each index indicates a charge level.|
+
+Powerlevel9k will use each index of the string or array as a stage to indicate battery
+charge level, progressing from left to right. You can provide any number of
+stages. The setting below, for example, provides 8 stages for Powerlevel9k to use.
+```zsh
+POWERLEVEL9K_BATTERY_STAGES="▁▂▃▄▅▆▇█"
+```
+
+If you require extra spacing after the icon, you will have to set it as an array,
+since spaces in the string will be used as one of the stages and you will get a
+missing icon. To do this, declare the variable as follows:
+```zsh
+POWERLEVEL9K_BATTERY_STAGES=($'\u2581 ' $'\u2582 ' $'\u2583 ' $'\u2584 ' $'\u2585 ' $'\u2586 ' $'\u2587 ' $'\u2588 ')
+```
+
+Using the array syntax, you can create stages comprised of multiple characters.
+The below setting provides 40 battery stages.
+```zsh
+POWERLEVEL9K_BATTERY_STAGES=(
+   $'▏    ▏' $'▎    ▏' $'▍    ▏' $'▌    ▏' $'▋    ▏' $'▊    ▏' $'▉    ▏' $'█    ▏'
+   $'█▏   ▏' $'█▎   ▏' $'█▍   ▏' $'█▌   ▏' $'█▋   ▏' $'█▊   ▏' $'█▉   ▏' $'██   ▏'
+   $'██   ▏' $'██▎  ▏' $'██▍  ▏' $'██▌  ▏' $'██▋  ▏' $'██▊  ▏' $'██▉  ▏' $'███  ▏'
+   $'███  ▏' $'███▎ ▏' $'███▍ ▏' $'███▌ ▏' $'███▋ ▏' $'███▊ ▏' $'███▉ ▏' $'████ ▏'
+   $'████ ▏' $'████▎▏' $'████▍▏' $'████▌▏' $'████▋▏' $'████▊▏' $'████▉▏' $'█████▏' )
+```
+
+You can also change the background of the segment automatically depending on the
+battery level. This will override the following variables:
+`POWERLEVEL9K_BATTERY_CHARGING`, `POWERLEVEL9K_BATTERY_CHARGED`,
+`POWERLEVEL9K_BATTERY_DISCONNECTED`, and `POWERLEVEL9K_BATTERY_LOW_COLOR`. In
+order to do this, define a color array, from low to high, as shown below:
+```zsh
+POWERLEVEL9K_BATTERY_LEVEL_BACKGROUND=(196 202 208 214 220 226 190 154 118 82 46)
+```
+
+As with the battery stages, you can use any number of colors and Powerlevel9k
+will automatically use all of them appropriately.
+
+Some example settings:
+|Brightness|Possible Array|
+|Bright Colors|(196 202 208 214 220 226 190 154 118  82  46)|
+|Normal Colors|(124 130 136 142 148 112  76  40  34  28  22)|
+|Subdued Colors|( 88  94 100 106  70  34  28  22)|
 
 ##### command_execution_time
 
@@ -342,6 +391,12 @@ POWERLEVEL9K_DIR_PATH_SEPARATOR="%F{red} $(print_icon 'LEFT_SUBSEGMENT_SEPARATOR
 ```
 To omit the first character (usually a slash that gets replaced if you set `POWERLEVEL9K_DIR_PATH_SEPARATOR`),
 you could set `POWERLEVEL9K_DIR_OMIT_FIRST_CHARACTER=true`.
+
+You can also customize the leading tilde character when you are in `$HOME` using:
+```zsh
+# Double quotes are important here!
+POWERLEVEL9K_HOME_FOLDER_ABBREVIATION="%F{red} $(print_icon 'HOME_ICON') %F{black}"
+```
 
 
 ##### disk_usage
