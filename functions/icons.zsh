@@ -40,9 +40,11 @@ case $POWERLEVEL9K_MODE in
       FAIL_ICON                      $'\u2718'              # ✘
       SYMFONY_ICON                   'SF'
       NODE_ICON                      $'\u2B22'              # ⬢
-      MULTILINE_FIRST_PROMPT_PREFIX  $'\u256D'$'\U2500'
-      MULTILINE_SECOND_PROMPT_PREFIX $'\u2570'$'\U2500 '
+      MULTILINE_FIRST_PROMPT_PREFIX  $'\u256D'$'\U2500'     # ╭─
+      MULTILINE_NEWLINE_PROMPT_PREFIX  $'\u251C'$'\U2500'   # ├─
+      MULTILINE_LAST_PROMPT_PREFIX   $'\u2570'$'\U2500 '    # ╰─
       APPLE_ICON                     $'\uE26E'              # 
+      WINDOWS_ICON                   $'\uE26F'              # 
       FREEBSD_ICON                   $'\U1F608 '            # 😈
       ANDROID_ICON                   $'\uE270'              # 
       LINUX_ICON                     $'\uE271'              # 
@@ -83,6 +85,8 @@ case $POWERLEVEL9K_MODE in
       LOCK_ICON                      $'\UE138'              # 
       EXECUTION_TIME_ICON            $'\UE89C'              # 
       SSH_ICON                       '(ssh)'
+      VPN_ICON                       '(vpn)'
+      KUBERNETES_ICON                $'\U2388'              # ⎈
     )
   ;;
   'awesome-fontconfig')
@@ -181,8 +185,10 @@ case $POWERLEVEL9K_MODE in
       SYMFONY_ICON                   'SF'
       NODE_ICON                      $'\u2B22'              # ⬢
       MULTILINE_FIRST_PROMPT_PREFIX  $'\u256D'$'\U2500'     # ╭─
-      MULTILINE_SECOND_PROMPT_PREFIX $'\u2570'$'\U2500 '    # ╰─
+      MULTILINE_NEWLINE_PROMPT_PREFIX  $'\u251C'$'\U2500'   # ├─
+      MULTILINE_LAST_PROMPT_PREFIX   $'\u2570'$'\U2500 '    # ╰─
       APPLE_ICON                     $'\uF179'              # 
+      WINDOWS_ICON                   $'\uF17A'              # 
       FREEBSD_ICON                   $'\U1F608 '            # 😈
       ANDROID_ICON                   $'\uE17B'              # 
       LINUX_ICON                     $'\uF17C'              # 
@@ -219,6 +225,8 @@ case $POWERLEVEL9K_MODE in
       LOCK_ICON                      $'\UE138'              # 
       EXECUTION_TIME_ICON            $'\uF253'
       SSH_ICON                       '(ssh)'
+      VPN_ICON                       $'\uF023'
+      KUBERNETES_ICON                $'\U2388'              # ⎈
     )
   ;;
   'nerdfont-complete'|'nerdfont-fontconfig')
@@ -247,8 +255,10 @@ case $POWERLEVEL9K_MODE in
       SYMFONY_ICON                   $'\uE757'              # 
       NODE_ICON                      $'\uE617 '             # 
       MULTILINE_FIRST_PROMPT_PREFIX  $'\u256D'$'\U2500'     # ╭─
-      MULTILINE_SECOND_PROMPT_PREFIX $'\u2570'$'\U2500 '    # ╰─
+      MULTILINE_NEWLINE_PROMPT_PREFIX  $'\u251C'$'\U2500'   # ├─
+      MULTILINE_LAST_PROMPT_PREFIX   $'\u2570'$'\U2500 '    # ╰─
       APPLE_ICON                     $'\uF179'              # 
+      WINDOWS_ICON                   $'\uF17A'              # 
       FREEBSD_ICON                   $'\UF30E '             # 
       ANDROID_ICON                   $'\uF17B'              # 
       LINUX_ICON                     $'\uF17C'              # 
@@ -285,6 +295,8 @@ case $POWERLEVEL9K_MODE in
       LOCK_ICON                      $'\UF023'              # 
       EXECUTION_TIME_ICON            $'\uF252'              # 
       SSH_ICON                       $'\uF489'              # 
+      VPN_ICON                       '(vpn)'
+      KUBERNETES_ICON                $'\U2388'              # ⎈
     )
   ;;
   *)
@@ -312,9 +324,11 @@ case $POWERLEVEL9K_MODE in
       FAIL_ICON                      $'\u2718'              # ✘
       SYMFONY_ICON                   'SF'
       NODE_ICON                      $'\u2B22'              # ⬢
-      MULTILINE_FIRST_PROMPT_PREFIX  $'\u256D'$'\u2500'
-      MULTILINE_SECOND_PROMPT_PREFIX $'\u2570'$'\u2500 '
+      MULTILINE_FIRST_PROMPT_PREFIX  $'\u256D'$'\U2500'     # ╭─
+      MULTILINE_NEWLINE_PROMPT_PREFIX  $'\u251C'$'\U2500'   # ├─
+      MULTILINE_LAST_PROMPT_PREFIX   $'\u2570'$'\U2500 '    # ╰─
       APPLE_ICON                     'OSX'
+      WINDOWS_ICON                   'WIN'
       FREEBSD_ICON                   'BSD'
       ANDROID_ICON                   'And'
       LINUX_ICON                     'Lx'
@@ -351,6 +365,8 @@ case $POWERLEVEL9K_MODE in
       LOCK_ICON                      $'\UE0A2'
       EXECUTION_TIME_ICON            'Dur'
       SSH_ICON                       '(ssh)'
+      VPN_ICON                       '(vpn)'
+      KUBERNETES_ICON                $'\U2388'              # ⎈
     )
   ;;
 esac

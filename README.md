@@ -92,7 +92,9 @@ The segments that are currently available are:
 * `dir_writable` - Displays a lock icon, if you do not have write permissions on the current folder.
 * [`disk_usage`](#disk_usage) - Disk usage of your current partition.
 * `history` - The command number for the current line.
+* [`host`](#host) - Your current host name
 * [`ip`](#ip) - Shows the current IP address.
+* [`vpn`](#vpn) - Shows the current VPN IP address.
 * [`public_ip`](#public_ip) - Shows your public IP address.
 * `load` - Your machine's load averages.
 * `os_icon` - Display a nice little icon, depending on your operating system.
@@ -101,6 +103,7 @@ The segments that are currently available are:
 * [`status`](#status) - The return code of the previous command.
 * `swap` - Prints the current swap size.
 * [`time`](#time) - System time.
+* [`user`](#user) - Your current username
 * [`vi_mode`](#vi_mode)- Your prompt's Vi editing mode (NORMAL|INSERT).
 * `ssh` - Indicates whether or not you are in an SSH session.
 
@@ -136,6 +139,7 @@ The segments that are currently available are:
     * [`aws`](#aws) - The current AWS profile, if active.
     * `aws_eb_env` - The current Elastic Beanstalk Environment.
 * `docker_machine` - The current Docker Machine.
+* `kubecontext` - The current context of your `kubectl` configuration.
 
 **Other:**
 * [`custom_command`](#custom_command) - Create a custom segment to display the
@@ -143,6 +147,7 @@ The segments that are currently available are:
 * [`command_execution_time`](#command_execution_time) - Display the time the current command took to execute.
 * [`todo`](http://todotxt.com/) - Shows the number of tasks in your todo.txt tasks file.
 * `detect_virt` - Virtualization detection with systemd
+* `newline` - Continues the prompt on a new line.
 
 ---------------------------------------------------------------------------------
 
@@ -261,7 +266,7 @@ If you want more precision, just set the
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
 |`POWERLEVEL9K_COMMAND_EXECUTION_TIME_THRESHOLD`|3|Threshold above which to print this segment. Can be set to `0` to always print.|
-|`POWERLEVEL9K_COMMAND_EXECUTION_TIME_PRECISION=2`|2|Number of digits to use in the fractional part of the time value.|
+|`POWERLEVEL9K_COMMAND_EXECUTION_TIME_PRECISION`|2|Number of digits to use in the fractional part of the time value.|
 
 ##### custom_command
 
@@ -310,10 +315,10 @@ elements (it is by default), and define a `DEFAULT_USER` in your `~/.zshrc`.
 
 You can customize the `context` segment. For example, you can make it to print the
 full hostname by setting
+
 ```
 POWERLEVEL9K_CONTEXT_TEMPLATE="%n@`hostname -f`"
 ```
-
 
 You can set the `POWERLEVEL9K_CONTEXT_HOST_DEPTH` variable to change how the
 hostname is displayed. See (ZSH Manual)[http://zsh.sourceforge.net/Doc/Release/Prompt-Expansion.html#Login-information]
@@ -409,6 +414,28 @@ The `disk_usage` segment will show the usage level of the partition that your cu
 |POWERLEVEL9K_DISK_USAGE_WARNING_LEVEL|90|The usage level that triggers a warning state.|
 |POWERLEVEL9K_DISK_USAGE_CRITICAL_LEVEL|95|The usage level that triggers a critical state.|
 
+##### host
+
+The `host` segment will print the hostname.
+
+You can set the `POWERLEVEL9K_HOST_TEMPLATE` variable to change how the hostname
+is displayed. See (ZSH Manual)[http://zsh.sourceforge.net/Doc/Release/Prompt-Expansion.html#Login-information]
+for details. The default is set to `%m` which will show the hostname up to the
+first `.`. You can set it to `%{N}m` where N is an integer to show that many
+segments of system hostname. Setting `N` to a negative integer will show that many
+segments from the end of the hostname.
+
+```
+POWERLEVEL9K_HOST_TEMPLATE="%2m"
+```
+
+By default, LOCAL hosts will show the host icon and remote hosts will show the SSH icon. You can override them by setting
+```
+POWERLEVEL9K_HOST_ICON="\uF109 "  # 
+POWERLEVEL9K_SSH_ICON="\uF489 "   # 
+```
+
+
 ##### ip
 
 This segment tries to examine all currently used network interfaces and prints
@@ -418,6 +445,14 @@ specify the correct network interface by setting:
 | Variable | Default Value | Description |
 |----------|---------------|-------------|
 |`POWERLEVEL9K_IP_INTERFACE`|None|The NIC for which you wish to display the IP address. Example: `eth0`.|
+
+##### vpn
+
+This segment tries to extract the VPN related IP addresses from nmcli, based on the NIC type:
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+|`POWERLEVEL9K_VPN_IP_INTERFACE`|`tun`|The VPN interface.|
 
 ##### public_ip
 
@@ -442,6 +477,15 @@ segment will not be displayed.
 |`POWERLEVEL9K_PUBLIC_IP_METHODS`|(dig curl wget)| These methods in that order are used to refresh your IP.|
 |`POWERLEVEL9K_PUBLIC_IP_NONE`|None|The string displayed when an IP was not obtained|
 
+##### newline
+
+Puts a newline in your prompt so you can continue using segments on the next
+line. This allows you to use segments on both lines, unlike
+`POWERLEVEL9K_PROMPT_ON_NEWLINE`, which simply separates segments from the
+prompt itself.
+
+This only works on the left side.  On the right side it does nothing.
+
 ##### rbenv
 
 This segment shows the version of Ruby being used when using `rbenv` to change your current Ruby stack.
@@ -463,6 +507,7 @@ This segment shows the return code of the last command.
 |----------|---------------|-------------|
 |`POWERLEVEL9K_STATUS_VERBOSE`|`true`|Set to false if you wish to not show the error code when the last command returned an error and optionally hide this segment when the last command completed successfully by setting `POWERLEVEL9K_STATUS_OK_IN_NON_VERBOSE` to false.|
 |`POWERLEVEL9K_STATUS_OK_IN_NON_VERBOSE`|`false`|Set to true if you wish to show this segment when the last command completed successfully in non-verbose mode.|
+|`POWERLEVEL9K_STATUS_SHOW_PIPESTATUS`|`true`|Set to true if you wish to show the exit status for all piped commands.|
 
 ##### ram
 
@@ -491,6 +536,23 @@ segment, as well:
 # Output time, date, and a symbol from the "Awesome Powerline Font" set
 POWERLEVEL9K_TIME_FORMAT="%D{%H:%M:%S \uE868  %d.%m.%y}"
 ```
+##### user
+
+The `user` segment will print the username.
+
+You can also override the icons by setting:
+
+```
+POWERLEVEL9K_USER_ICON="\uF415" # 
+POWERLEVEL9K_ROOT_ICON="#"
+```
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+|`DEFAULT_USER`|None|Username to consider a "default context".|
+|`POWERLEVEL9K_ALWAYS_SHOW_USER`|`false`|Always print this segment.|
+|`POWERLEVEL9K_USER_TEMPLATE`|`%n`|Default username prompt. Refer to the [ZSH Documentation](http://zsh.sourceforge.net/Doc/Release/Prompt-Expansion.html) for all possible expansions|
+
 ##### vcs
 
 By default, the `vcs` segment will provide quite a bit of information. Further
@@ -546,6 +608,21 @@ and does not show your code coverage or any sophisticated stats. All this does
 is count your source files and test files, and calculate the ratio between them.
 Just enough to give you a quick overview about the test situation of the project
 you are dealing with.
+
+### Disabling / Enabling Powerlevel9k
+
+You can disable P9k and return to a very basic prompt at any time simply by
+calling:
+
+```zsh
+$ prompt_powerlevel9k_teardown
+```
+
+You can then re-enable it by calling:
+
+```zsh
+$ prompt_powerlevel9k_setup
+```
 
 ### tl; dr
 
